@@ -1,4 +1,4 @@
 jfs
 ===
 
-Jabber file syncronizer
+Jabber mega file syncronizer
