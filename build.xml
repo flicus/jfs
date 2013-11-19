@@ -1,17 +1,32 @@
-<project name="jfs" default="distr" xmlns:ivy="antlib:org.apache.ivy.ant">
+<project name="jfs" default="pack" xmlns:ivy="antlib:org.apache.ivy.ant">
 
-    <property name="ivy.install.version" value="2.0.0-beta1"/>
+    <property name="ivy.install.version" value="2.3.0"/>
     <property name="ivy.jar.dir" value="${basedir}/ivy"/>
     <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
+
+
     <property name="build.dir" value="build"/>
     <property name="src.dir" value="src/java"/>
     <property name="unittest.dir" value="src/unittest"/>
-    <property name="test.report.dir" value="test"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="out.dir" value="${build.dir}/out"/>
+    <property name="test.report.dir" value="${basedir}/test"/>
+
+    <path id="lib.path.id">
+        <fileset dir="${lib.dir}"/>
+    </path>
+
+    <path id="run.path.id">
+        <path refid="lib.path.id"/>
+        <path location="${classes.dir}"/>
+    </path>
 
     <target name="download-ivy" unless="skip.download">
         <mkdir dir="${ivy.jar.dir}"/>
         <echo message="installing ivy..."/>
-        <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true"/>
+        <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar"
+             dest="${ivy.jar.file}" usetimestamp="true"/>
     </target>
 
     <target name="install-ivy" depends="download-ivy" description="--> install ivy">
@@ -21,28 +36,61 @@
         <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
     </target>
 
-    <target name="resolve" description="--> retrieve dependencies with ivy">
-        <ivy:retrieve/>
+    <target name="resolve" depends="install-ivy" description="--> retrieve dependencies with ivy">
+            <ivy:retrieve sync="true" type="jar, bundle"/>
     </target>
 
-    <target name="distr" depends="clean, compile" description="">
-
+    <target name="report" depends="resolve" description="--> generates a report of dependencies">
+        <ivy:report todir="${build.dir}"/>
     </target>
 
-    <target name="compile" depends="install-ivy, resolve" description="--> resolve dependencies, compile and run the project">
+    <target name="build" depends="clean, resolve" description="--> compile and run the project">
         <mkdir dir="${build.dir}"/>
-        <javac srcdir="${src.dir}" destdir="${build.dir}" classpathref="lib.path.id"/>
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="lib.path.id" includeAntRuntime="false"
+               debug="false" deprecation="true" optimize="true"/>
+        <javac srcdir="${unittest.dir}" destdir="${classes.dir}" classpathref="lib.path.id" includeAntRuntime="false"
+               debug="false" deprecation="true" optimize="true"/>
     </target>
 
-    <target name="junit" depends="compile">
-        <junit printsummary="on" haltonfailure="no">
+    <target name="pack" depends="build">
+        <mkdir dir="${out.dir}"/>
+
+        <pathconvert property="libs.project" pathsep=" ">
+            <mapper>
+                <chainedmapper>
+                    <flattenmapper/>
+                    <globmapper from="*" to="lib/*"/>
+                </chainedmapper>
+            </mapper>
+            <path refid="lib.path.id"/>
+        </pathconvert>
+
+        <jar jarfile="${out.dir}/${ant.project.name}.jar">
+            <fileset dir="${classes.dir}"/>
+            <manifest>
+                <attribute name="Main-Class" value="org.dummyclass"/>
+                <attribute name="Class-Path" value="${libs.project}"/>
+            </manifest>
+        </jar>
+
+        <copy todir="${out.dir}">
+            <file name="${basedir}/configuration.xml" file="configuration.xml"/>
+            <!--<fileset dir="${basedir}/etc" includes="**/*.*"/>-->
+        </copy>
+
+    </target>
+
+    <target name="junit" depends="build">
+        <mkdir dir="${test.report.dir}"/>
+        <junit printsummary="on" haltonfailure="no" >
             <classpath>
-                <!--<fileset dir="${junit.dir}" includes="junit-4.10.jar"/>-->
-                <pathelement  location="${build.dir}"/>
+                <pathelement location="${build.dir}"/>
+                <path refid="lib.path.id"/>
             </classpath>
-            <formatter type="plain" />
+            <formatter type="plain"/>
             <batchtest todir="${test.report.dir}">
-                <fileset dir="${unittest.dir}" />
+                <fileset dir="${unittest.dir}"/>
             </batchtest>
         </junit>
     </target>
@@ -50,6 +98,7 @@
     <target name="clean" description="--> clean the project">
         <delete includeemptydirs="true" quiet="true">
             <fileset dir="${build.dir}"/>
+            <fileset dir="${test.report.dir}"/>
         </delete>
     </target>
 

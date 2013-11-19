@@ -27,6 +27,7 @@ public class Configuration {
 
     public Configuration() {
     }
+    //
 
     public Configuration(String xmppServer, String xmppLogin, String xmppPassword, String xmppResource) {
         this.xmppServer = xmppServer;
