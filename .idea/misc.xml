@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="EntryPointsManager">
+    <entry_points version="2.0" />
+  </component>
   <component name="IdProvider" IDEtalkID="925A7DE8B5C2EF62267272D68AC8182B" />
+  <component name="IvyIDEA.ProjectSettings">
+    <option name="artifactTypeSettings">
+      <ArtifactTypeSettings>
+        <option name="classesTypes" value="jar, mar, sar, war, ear, ejb, bundle, test-jar" />
+        <option name="javadocTypes" value="javadoc, doc, docs, apidoc, apidocs, documentation, documents" />
+        <option name="sourcesTypes" value="source, src, sources, srcs" />
+      </ArtifactTypeSettings>
+    </option>
+    <option name="ivyLogLevelThreshold" value="Info" />
+    <option name="propertiesSettings">
+      <PropertiesSettings />
+    </option>
+    <option name="useCustomIvySettings" value="false" />
+  </component>
   <component name="JnetxGlobalBuildDir">
     <option name="globalBuildDir" value="$PROJECT_DIR$/../master\build" />
   </component>

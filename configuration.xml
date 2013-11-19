@@ -1,0 +1,6 @@
+<configuration>
+    <xmppServer>jabber.ru</xmppServer>
+    <xmppLogin>jfstest1</xmppLogin>
+    <xmppPassword>jfstest1</xmppPassword>
+    <xmppResource>res1</xmppResource>
+</configuration>
