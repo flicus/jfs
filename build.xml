@@ -37,7 +37,7 @@
     </target>
 
     <target name="resolve" depends="install-ivy" description="--> retrieve dependencies with ivy">
-            <ivy:retrieve sync="true" type="jar, bundle"/>
+        <ivy:retrieve />
     </target>
 
     <target name="report" depends="resolve" description="--> generates a report of dependencies">
@@ -83,14 +83,16 @@
 
     <target name="junit" depends="build">
         <mkdir dir="${test.report.dir}"/>
-        <junit printsummary="on" haltonfailure="no" >
+        <junit printsummary="on" haltonfailure="no" fork="true">
             <classpath>
-                <pathelement location="${build.dir}"/>
+                <pathelement location="${classes.dir}"/>
                 <path refid="lib.path.id"/>
             </classpath>
             <formatter type="plain"/>
             <batchtest todir="${test.report.dir}">
-                <fileset dir="${unittest.dir}"/>
+                <fileset dir="${unittest.dir}">
+                    <include name="**/*.java"/>
+                </fileset>
             </batchtest>
         </junit>
     </target>

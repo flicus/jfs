@@ -56,7 +56,7 @@ public class ConfigurationFactory {
 
     public Configuration getConfiguration() {
         String configurationPath = System.getProperty(CONFIGURATION_PATH);
-        if (configurationPath == null) configurationPath = "configuration.xml";
+        if (configurationPath == null) configurationPath = "./configuration.xml";
         return getConfiguration(configurationPath);
     }
 
