@@ -2,3 +2,5 @@ ivy
 build
 .idea
 out
+lib
+test
