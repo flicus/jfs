@@ -69,7 +69,7 @@ public class JFSNotification extends PEPItem {
     @Override
     public String toXML() {
         StringBuilder buf = new StringBuilder();
-        buf.append("<").append("item").append(" id=\"").append(id).append("\">");
+        buf.append("<").append("item").append(" id='").append(id).append("'>");
         buf.append(getItemDetailsXML());
         buf.append("</").append("item").append(">");
         return buf.toString();
