@@ -1,8 +1,8 @@
-ivy
-build
-.idea
-out
-lib
-test
+ivy/*
+build/*
+.idea/*
+out/*
+lib/*
+test/*
 master.iml
 jfs.iml
