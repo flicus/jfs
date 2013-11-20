@@ -46,7 +46,10 @@ public class XmppTest {
     public void testXmppConnect() throws Exception {
         assertTrue(connectionManager1.connect(cfg1));
         assertTrue(connectionManager1.connect(cfg2));
+    }
 
+    @Test
+    public void testPEPNotification() throws Exception {
         String revision1 = "node1_1";
         connectionManager1.publishRevision(revision1);
         wait(5000);
@@ -57,7 +60,6 @@ public class XmppTest {
         connectionManager2.publishRevision(revision2);
         wait(5000);
         assertEquals(revision2, connectionManager1.getLastReceivedRevision());
-
     }
 
     @After
