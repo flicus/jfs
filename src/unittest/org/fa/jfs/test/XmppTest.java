@@ -29,36 +29,39 @@ import static org.junit.Assert.*;
 
 public class XmppTest {
 
-    private ConnectionManager connectionManager1;
+    private ConnectionManager connectionManager1 = new ConnectionManager();
     private Configuration cfg1 = ConfigurationFactory.getInstance().getConfiguration("./configuration.xml");
 
-    private ConnectionManager connectionManager2;
+    private ConnectionManager connectionManager2 = new ConnectionManager();
     private Configuration cfg2 = ConfigurationFactory.getInstance().getConfiguration("./configuration2.xml");
 
 
     @Before
     public void setUp() throws Exception {
-        connectionManager1 = new ConnectionManager();
-        connectionManager2 = new ConnectionManager();
+//        connectionManager1 =
+//        connectionManager2 = new ConnectionManager();
     }
 
     @Test
     public void testXmppConnect() throws Exception {
         assertTrue(connectionManager1.connect(cfg1));
-        assertTrue(connectionManager1.connect(cfg2));
-    }
+        assertTrue(connectionManager2.connect(cfg2));
 
-    @Test
-    public void testPEPNotification() throws Exception {
+        //connectionManager1.subscribe(cfg2.getXmppLogin() + "@" + cfg2.getXmppServer());
+        //Thread.sleep(1000);
+
+        //connectionManager2.subscribe(cfg1.getXmppLogin() + "@" + cfg1.getXmppServer());
+        //Thread.sleep(1000);
+
         String revision1 = "node1_1";
         connectionManager1.publishRevision(revision1);
-        wait(5000);
+        Thread.sleep(1000*60*5);
         assertEquals(revision1, connectionManager2.getLastReceivedRevision());
 
 
         String revision2 = "node2_1";
         connectionManager2.publishRevision(revision2);
-        wait(5000);
+        Thread.sleep(1000*60*5);
         assertEquals(revision2, connectionManager1.getLastReceivedRevision());
     }
 

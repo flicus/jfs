@@ -32,7 +32,7 @@ import org.jivesoftware.smack.packet.PacketExtension;
  */
 public abstract class PEPItem implements PacketExtension {
     
-    String id;
+    protected String id;
     abstract public String getNode();
     abstract public String getItemDetailsXML();
     

@@ -181,6 +181,12 @@ public class DiscoverInfo extends IQ {
             this.name = name;
         }
 
+        public Identity(String category, String name, String type) {
+            this.category = category;
+            this.name = name;
+            this.type = type;
+        }
+
         /**
          * Returns the entity's category. To get the official registry of values for the 
          * 'category' attribute refer to <a href="http://www.jabber.org/registrar/disco-categories.html">Jabber::Registrar</a> 

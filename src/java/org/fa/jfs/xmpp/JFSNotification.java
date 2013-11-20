@@ -28,6 +28,7 @@ public class JFSNotification extends PEPItem {
     private NotificationType notificationType;
     private String repositoryVersion;
 
+
     /**
      * Creates a new PEPItem.
      */
@@ -49,14 +50,28 @@ public class JFSNotification extends PEPItem {
     @Override
     public String getItemDetailsXML() {
         StringBuilder buf = new StringBuilder();
+        buf.append("<").append(NAME).append(" xmlns='").append(NAMESPACE).append("'>");
+
         //type
-        buf.append("<").append("type").append("\">");
+        buf.append("<").append("type").append(">");
         buf.append(notificationType.name());
         buf.append("</").append("type").append(">");
+
         //version
-        buf.append("<").append("version").append("\">");
+        buf.append("<").append("version").append(">");
         buf.append(repositoryVersion);
         buf.append("</").append("version").append(">");
+
+        buf.append("</").append(NAME).append(">");
+        return buf.toString();
+    }
+
+    @Override
+    public String toXML() {
+        StringBuilder buf = new StringBuilder();
+        buf.append("<").append("item").append(" id=\"").append(id).append("\">");
+        buf.append(getItemDetailsXML());
+        buf.append("</").append("item").append(">");
         return buf.toString();
     }
 

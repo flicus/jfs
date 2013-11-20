@@ -63,6 +63,7 @@ public class Presence extends Packet {
     private int priority = Integer.MIN_VALUE;
     private Mode mode = null;
     private String language;
+    private PresenceCapability caps;
 
     /**
      * Creates a new presence update. Status, priority, and mode are left un-set.
@@ -223,6 +224,14 @@ public class Presence extends Packet {
         this.language = language;
     }
 
+    public PresenceCapability getCaps() {
+        return caps;
+    }
+
+    public void setCaps(PresenceCapability caps) {
+        this.caps = caps;
+    }
+
     public String toXML() {
         StringBuilder buf = new StringBuilder();
         buf.append("<presence");
@@ -245,6 +254,9 @@ public class Presence extends Packet {
             buf.append(" type=\"").append(type).append("\"");
         }
         buf.append(">");
+        if (caps != null) {
+            buf.append(caps.toXML());
+        }
         if (status != null) {
             buf.append("<status>").append(StringUtils.escapeForXML(status)).append("</status>");
         }

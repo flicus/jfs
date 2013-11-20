@@ -20,13 +20,17 @@ package org.fa.jfs.common;
 
 import org.apache.log4j.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ConfigurationFactory {
 
     public static final Logger log = Logger.getLogger(ConfigurationFactory.class);
     public static final String CONFIGURATION_READER = "org.fa.jfs.configuration.reader";
     public static final String CONFIGURATION_PATH = "org.fa.jfs.configuration.path";
 
-    private Configuration configuration;
+    private Map<String, Configuration> configurations = new HashMap<String, Configuration>();
+
     private ConfigurationReader reader;
 
 
@@ -47,9 +51,11 @@ public class ConfigurationFactory {
     }
 
     public Configuration getConfiguration(String filePath) {
+        Configuration configuration = configurations.get(filePath);
         if (configuration == null) {
             if (reader == null) reader = getDefaultReader();
             configuration = reader.read(filePath);
+            configurations.put(filePath, configuration);
         }
         return configuration;
     }

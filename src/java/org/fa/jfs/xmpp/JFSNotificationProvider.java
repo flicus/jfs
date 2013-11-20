@@ -33,17 +33,21 @@ public class JFSNotificationProvider implements PacketExtensionProvider {
         JFSNotification notification = null;
         while (!done) {
             int eventType = parser.next();
+            String name = parser.getName();
             if (eventType == XmlPullParser.START_TAG) {
-                if (parser.getName().equals(JFSNotification.NAME)) {
+                if (name.equals(JFSNotification.NAME)) {
                     String id = parser.getAttributeValue("", "id");
                     notification = new JFSNotification(id);
                 }
-                if (parser.getName().equals("type"))
-                    notification.setNotificationType(NotificationType.valueOf(parser.getText()));
-                if (parser.getName().equals("version"))
-                    notification.setRepositoryVersion(parser.getText());
+                if (name.equals("type")) {
+                    String text = parser.nextText();
+                    notification.setNotificationType(NotificationType.valueOf(text));
+                }
+                if (name.equals("version")) {
+                    notification.setRepositoryVersion(parser.nextText());
+                }
             } else if (eventType == XmlPullParser.END_TAG) {
-                if (parser.getName().equals(JFSNotification.NAME)) {
+                if (name.equals(JFSNotification.NAME)) {
                     done = true;
                 }
             }
