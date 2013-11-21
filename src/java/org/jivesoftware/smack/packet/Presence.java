@@ -63,7 +63,7 @@ public class Presence extends Packet {
     private int priority = Integer.MIN_VALUE;
     private Mode mode = null;
     private String language;
-    private PresenceCapability caps;
+    private EntityCapability caps;
 
     /**
      * Creates a new presence update. Status, priority, and mode are left un-set.
@@ -224,11 +224,11 @@ public class Presence extends Packet {
         this.language = language;
     }
 
-    public PresenceCapability getCaps() {
+    public EntityCapability getCaps() {
         return caps;
     }
 
-    public void setCaps(PresenceCapability caps) {
+    public void setCaps(EntityCapability caps) {
         this.caps = caps;
     }
 

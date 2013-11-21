@@ -21,16 +21,12 @@ package org.fa.jfs.xmpp;
 import org.fa.jfs.common.Configuration;
 import org.fa.jfs.common.GUIDGenerator;
 import org.jivesoftware.smack.*;
-import org.jivesoftware.smack.filter.OrFilter;
 import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.filter.PacketTypeFilter;
-import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.EntityCapability;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.packet.PresenceCapability;
 import org.jivesoftware.smack.provider.ProviderManager;
-import org.jivesoftware.smack.proxy.ProxyInfo;
-import org.jivesoftware.smack.util.Base64;
 import org.jivesoftware.smack.util.StringUtils;
 import org.jivesoftware.smackx.NodeInformationProvider;
 import org.jivesoftware.smackx.PEPListener;
@@ -41,29 +37,30 @@ import org.jivesoftware.smackx.packet.DiscoverItems;
 import org.jivesoftware.smackx.packet.PEPEvent;
 import org.jivesoftware.smackx.provider.PEPProvider;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class ConnectionManager {
+public class SessionManager {
 
     private Connection connection;
     private PEPManager pepManager;
     private String lastReceivedRevision;
 
-    private static final String[] features = new String[] {
-            "http://jabber.org/protocol/caps",
+    private static final String[] features = new String[]{
+            "http://jabber.org/protocol/caps",  //xep-0163
             "http://jabber.org/protocol/disco#info",
             "http://jabber.org/protocol/disco#items",
-            JFSNotification.NAMESPACE,
-            JFSNotification.NAMESPACE+"+notify"
+            "http://jabber.org/protocol/bytestreams",   //xep-0065
+            "http://jabber.org/protocol/si",                    //xep-0095
+            "http://jabber.org/protocol/si/profile/file-transfer",  //xep-0096
+            "http://jabber.org/protocol/ibb",   //xep-0047
+            JFSNotification.NAMESPACE,  //no xep!
+            JFSNotification.NAMESPACE + "+notify"
     };
 
-    public ConnectionManager() {
+    public SessionManager() {
         Connection.DEBUG_ENABLED = true;
         lastReceivedRevision = "";
     }
@@ -95,8 +92,8 @@ public class ConnectionManager {
                 @Override
                 public void processPacket(Packet packet) {
                     if (packet instanceof Presence) {
-                        Presence presence = (Presence)packet;
-                        System.out.println(presence.getFrom() +", " + presence.getStatus() + ", " +presence.getType());
+                        Presence presence = (Presence) packet;
+                        System.out.println(presence.getFrom() + ", " + presence.getStatus() + ", " + presence.getType());
                         String f = StringUtils.parseBareAddress(packet.getFrom());
                         if (presence.getType().equals(Presence.Type.subscribe) && !connection.getRoster().contains(presence.getFrom())) {
                             try {
@@ -117,7 +114,7 @@ public class ConnectionManager {
             pepManager.addPEPListener(new PEPListener() {
                 @Override
                 public void eventReceived(String from, PEPEvent event) {
-                    lastReceivedRevision = ((JFSNotification)event.getItem()).getRepositoryVersion();
+                    lastReceivedRevision = ((JFSNotification) event.getItem()).getRepositoryVersion();
                     System.out.println(event.getItem());
                 }
             });
@@ -137,8 +134,8 @@ public class ConnectionManager {
             }
 
             final DiscoverInfo.Identity idt = new DiscoverInfo.Identity("client", "JFS client", "pc");
-            String ver = computeVersion(idt, features);
-            discoManager.setNodeInformationProvider("http://0xffff.net/jfs#"+ver, new NodeInformationProvider() {
+            EntityCapability entityCapability = EntityCapability.createCapabilities("http://0xffff.net/jfs", idt, features);
+            discoManager.setNodeInformationProvider(entityCapability.getNode() + "#" + entityCapability.getVersion(), new NodeInformationProvider() {
                 @Override
                 public List<DiscoverItems.Item> getNodeItems() {
                     List<DiscoverItems.Item> list = new ArrayList<DiscoverItems.Item>();
@@ -160,7 +157,7 @@ public class ConnectionManager {
             });
 
             Presence presence = new Presence(Presence.Type.available, "Ready", 10, Presence.Mode.available);
-            presence.setCaps(new PresenceCapability("sha-1", "http://0xffff.net/jfs", ver));
+            presence.setCaps(entityCapability);
             connection.sendPacket(presence);
 
 
@@ -194,34 +191,8 @@ public class ConnectionManager {
         return result;
     }
 
-    private String computeVersion(DiscoverInfo.Identity identity, String[] features) {
-        StringBuilder s = new StringBuilder();
-        Arrays.sort(features);
-
-        s.append(identity.getCategory()).append("/").append(identity.getType()).append("/");
-        //no language here
-        s.append("/");
-        s.append(identity.getName()).append("<");
-        for (String feature : features) {
-            s.append(feature).append("<");
-        }
-
-        byte[] res = null;
-        MessageDigest digest = null;
-        try {
-            digest = MessageDigest.getInstance("SHA-1");
-            digest.update(s.toString().getBytes("UTF-8"));
-            res = digest.digest();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-        return Base64.encodeBytes(res);
-    }
-
     public void publishRevision(String revision) {
-        String newId =  newId();
+        String newId = newId();
         JFSNotification jfsn = new JFSNotification(newId, NotificationType.UPDATE, revision);
         pepManager.publish(jfsn);
     }
