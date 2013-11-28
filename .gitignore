@@ -1,8 +1,11 @@
 ivy/*
 build/*
+bin/*
 .idea/*
 out/*
 lib/*
 test/*
 master.iml
 jfs.iml
+.classpath
+.project

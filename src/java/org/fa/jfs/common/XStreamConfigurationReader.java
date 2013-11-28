@@ -21,7 +21,6 @@ package org.fa.jfs.common;
 import com.thoughtworks.xstream.XStream;
 
 import java.io.File;
-import java.nio.file.Files;
 
 public class XStreamConfigurationReader implements ConfigurationReader {
     @Override
