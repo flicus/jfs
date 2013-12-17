@@ -27,21 +27,17 @@ import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.provider.ProviderManager;
-import org.jivesoftware.smack.util.Base64;
 import org.jivesoftware.smack.util.StringUtils;
 import org.jivesoftware.smackx.NodeInformationProvider;
 import org.jivesoftware.smackx.ServiceDiscoveryManager;
 import org.jivesoftware.smackx.packet.DiscoverInfo;
 import org.jivesoftware.smackx.packet.DiscoverItems;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ConnectionManager {
+public class SessionManager {
 
     private Connection connection;
     private String lastReceivedRevision;
@@ -49,13 +45,17 @@ public class ConnectionManager {
 
     private static final String NODE = "http://0xffff.net/jfs";
 
-    private static final String[] features = new String[] {
-            "http://jabber.org/protocol/caps",
+    private static final String[] features = new String[]{
+            "http://jabber.org/protocol/caps",  //xep-0163
             "http://jabber.org/protocol/disco#info",
             "http://jabber.org/protocol/disco#items",
+            "http://jabber.org/protocol/bytestreams",   //xep-0065
+            "http://jabber.org/protocol/si",                    //xep-0095
+            "http://jabber.org/protocol/si/profile/file-transfer",  //xep-0096
+            "http://jabber.org/protocol/ibb"   //xep-0047
     };
 
-    public ConnectionManager() {
+    public SessionManager() {
         Connection.DEBUG_ENABLED = true;
         lastReceivedRevision = "";
     }
@@ -87,8 +87,8 @@ public class ConnectionManager {
                 @Override
                 public void processPacket(Packet packet) {
                     if (packet instanceof Presence) {
-                        Presence presence = (Presence)packet;
-                        System.out.println(presence.getFrom() +", " + presence.getStatus() + ", " +presence.getType());
+                        Presence presence = (Presence) packet;
+                        System.out.println(presence.getFrom() + ", " + presence.getStatus() + ", " + presence.getType());
                         String f = StringUtils.parseBareAddress(packet.getFrom());
                         if (presence.getType().equals(Presence.Type.subscribe) && !connection.getRoster().contains(presence.getFrom())) {
                             try {
@@ -179,32 +179,6 @@ public class ConnectionManager {
         }
 
         return result;
-    }
-
-    private String computeVersion(DiscoverInfo.Identity identity, String[] features) {
-        StringBuilder s = new StringBuilder();
-        Arrays.sort(features);
-
-        s.append(identity.getCategory()).append("/").append(identity.getType()).append("/");
-        //no language here
-        s.append("/");
-        s.append(identity.getName()).append("<");
-        for (String feature : features) {
-            s.append(feature).append("<");
-        }
-
-        byte[] res = null;
-        MessageDigest digest = null;
-        try {
-            digest = MessageDigest.getInstance("SHA-1");
-            digest.update(s.toString().getBytes("UTF-8"));
-            res = digest.digest();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-        return Base64.encodeBytes(res);
     }
 
     public void publishRevision(String revision) {

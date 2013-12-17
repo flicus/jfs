@@ -20,7 +20,7 @@ package org.fa.jfs.test;
 
 import org.fa.jfs.common.Configuration;
 import org.fa.jfs.common.ConfigurationFactory;
-import org.fa.jfs.xmpp.ConnectionManager;
+import org.fa.jfs.xmpp.SessionManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,47 +29,45 @@ import static org.junit.Assert.*;
 
 public class XmppTest {
 
-    private ConnectionManager connectionManager1 = new ConnectionManager();
+    private SessionManager sessionManager1 = new SessionManager();
     private Configuration cfg1 = ConfigurationFactory.getInstance().getConfiguration("./configuration.xml");
 
-    private ConnectionManager connectionManager2 = new ConnectionManager();
+    private SessionManager sessionManager2 = new SessionManager();
     private Configuration cfg2 = ConfigurationFactory.getInstance().getConfiguration("./configuration2.xml");
 
 
     @Before
     public void setUp() throws Exception {
-//        connectionManager1 =
-//        connectionManager2 = new ConnectionManager();
+//        sessionManager1 =
+//        sessionManager2 = new SessionManager();
     }
 
     @Test
     public void testXmppConnect() throws Exception {
-        assertTrue(connectionManager1.connect(cfg1));
-        assertTrue(connectionManager2.connect(cfg2));
+        assertTrue(sessionManager1.connect(cfg1));
+        assertTrue(sessionManager2.connect(cfg2));
 
-        //connectionManager1.subscribe(cfg2.getXmppLogin() + "@" + cfg2.getXmppServer());
+        //sessionManager1.subscribe(cfg2.getXmppLogin() + "@" + cfg2.getXmppServer());
         //Thread.sleep(1000);
 
-        //connectionManager2.subscribe(cfg1.getXmppLogin() + "@" + cfg1.getXmppServer());
+        //sessionManager2.subscribe(cfg1.getXmppLogin() + "@" + cfg1.getXmppServer());
         //Thread.sleep(1000);
 
         String revision1 = "node1_1";
-        connectionManager1.publishRevision(revision1);
+        sessionManager1.publishRevision(revision1);
         Thread.sleep(1000);
-        assertEquals(revision1, connectionManager2.getLastReceivedRevision());
+        assertEquals(revision1, sessionManager2.getLastReceivedRevision());
 
 
         String revision2 = "node2_1";
-        connectionManager2.publishRevision(revision2);
+        sessionManager2.publishRevision(revision2);
         Thread.sleep(1000);
-        assertEquals(revision2, connectionManager1.getLastReceivedRevision());
-
-        //Thread.sleep(600*60*1000);
+        assertEquals(revision2, sessionManager1.getLastReceivedRevision());
     }
 
     @After
     public void tearDown() throws Exception {
-        connectionManager1.disconnect();
-        connectionManager2.disconnect();
+        sessionManager1.disconnect();
+        sessionManager2.disconnect();
     }
 }
