@@ -10,7 +10,7 @@
 
         <dependency org="junit" name="junit" rev="latest.integration"/>
         <!--<dependency org="xml-apis" name="xml-apis" rev="2.0.2"/>-->
-        <!--<dependency org="org.igniterealtime.smack" name="smack" rev="latest.integration"/>-->
+        <dependency org="org.igniterealtime.smack" name="smack" rev="latest.integration"/>
         <dependency org="org.igniterealtime.smack" name="smackx" rev="latest.integration"/>
         <!--<dependency org="org.igniterealtime.smack" name="smackx-debug" rev="latest.integration"/>-->
         <dependency org="com.thoughtworks.xstream" name="xstream" rev="latest.integration"/>

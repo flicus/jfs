@@ -21,46 +21,38 @@ package org.fa.jfs.xmpp;
 import org.fa.jfs.common.Configuration;
 import org.fa.jfs.common.GUIDGenerator;
 import org.jivesoftware.smack.*;
-import org.jivesoftware.smack.filter.OrFilter;
 import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.filter.PacketTypeFilter;
-import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
+import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.packet.PresenceCapability;
 import org.jivesoftware.smack.provider.ProviderManager;
-import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.util.Base64;
 import org.jivesoftware.smack.util.StringUtils;
 import org.jivesoftware.smackx.NodeInformationProvider;
-import org.jivesoftware.smackx.PEPListener;
-import org.jivesoftware.smackx.PEPManager;
 import org.jivesoftware.smackx.ServiceDiscoveryManager;
 import org.jivesoftware.smackx.packet.DiscoverInfo;
 import org.jivesoftware.smackx.packet.DiscoverItems;
-import org.jivesoftware.smackx.packet.PEPEvent;
-import org.jivesoftware.smackx.provider.PEPProvider;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 public class ConnectionManager {
 
     private Connection connection;
-    private PEPManager pepManager;
     private String lastReceivedRevision;
+    private Presence presence = new Presence(Presence.Type.available, "Ready", 10, Presence.Mode.available);
+
+    private static final String NODE = "http://0xffff.net/jfs";
 
     private static final String[] features = new String[] {
             "http://jabber.org/protocol/caps",
             "http://jabber.org/protocol/disco#info",
             "http://jabber.org/protocol/disco#items",
-            JFSNotification.NAMESPACE,
-            JFSNotification.NAMESPACE+"+notify"
     };
 
     public ConnectionManager() {
@@ -107,23 +99,17 @@ public class ConnectionManager {
                             Presence subscribed = new Presence(Presence.Type.subscribed);
                             subscribed.setTo(f);
                             connection.sendPacket(subscribed);
+                        } else {
+                            PacketExtension pe = presence.getExtension(JFSPacketExtension.NAMESPACE);
+                            if (pe != null) {
+                                JFSPacketExtension jfsPacketExtension = (JFSPacketExtension)pe;
+                                lastReceivedRevision = ((JFSPacketExtension) pe).getRepositoryVersion();
+                            }
                         }
                     }
                 }
             };
             connection.addPacketListener(listener, filter);
-
-            pepManager = new PEPManager(connection);
-            pepManager.addPEPListener(new PEPListener() {
-                @Override
-                public void eventReceived(String from, PEPEvent event) {
-                    lastReceivedRevision = ((JFSNotification)event.getItem()).getRepositoryVersion();
-                    System.out.println(event.getItem());
-                }
-            });
-            PEPProvider pepProvider = new PEPProvider();
-            pepProvider.registerPEPParserExtension(JFSNotification.NAMESPACE, new JFSNotificationProvider());
-            ProviderManager.getInstance().addExtensionProvider("event", "http://jabber.org/protocol/pubsub#event", pepProvider);
 
             for (RosterEntry entry : connection.getRoster().getEntries()) {
                 System.out.println("Roster.entry: " + entry.toString());
@@ -136,15 +122,15 @@ public class ConnectionManager {
                 discoManager.addFeature(item);
             }
 
-            final DiscoverInfo.Identity idt = new DiscoverInfo.Identity("client", "JFS client", "pc");
-            String ver = computeVersion(idt, features);
-            discoManager.setNodeInformationProvider("http://0xffff.net/jfs#"+ver, new NodeInformationProvider() {
+            final DiscoverInfo.Identity idt = new DiscoverInfo.Identity("client", "JFS client"/*, "bot"*/);
+//            String ver = computeVersion(idt, features);
+            discoManager.setNodeInformationProvider(NODE/*+"#"+ver*/, new NodeInformationProvider() {
                 @Override
                 public List<DiscoverItems.Item> getNodeItems() {
                     List<DiscoverItems.Item> list = new ArrayList<DiscoverItems.Item>();
-                    for (String item : features) {
-                        list.add(new DiscoverItems.Item(item));
-                    }
+                    //for (String item : features) {
+                        list.add(new DiscoverItems.Item(NODE));
+                    //}
                     return list;
                 }
 
@@ -159,32 +145,33 @@ public class ConnectionManager {
                 }
             });
 
-            Presence presence = new Presence(Presence.Type.available, "Ready", 10, Presence.Mode.available);
-            presence.setCaps(new PresenceCapability("sha-1", "http://0xffff.net/jfs", ver));
+            ProviderManager.getInstance().addExtensionProvider(JFSPacketExtension.NAME, JFSPacketExtension.NAMESPACE, new JFSPacketExtProvider());
+
+            //presence.setCaps(new PresenceCapability("sha-1", NODE, ver));
             connection.sendPacket(presence);
 
 
             //look for server capabilities
-            DiscoverItems discoItems = discoManager.discoverItems(cfg.getXmppServer());
-            Iterator it = discoItems.getItems();
-
-            System.out.println("Discovered items: ");
-            while (it.hasNext()) {
-                DiscoverItems.Item item = (DiscoverItems.Item) it.next();
-                System.out.println(item.getEntityID());
-                System.out.println(item.getNode());
-                System.out.println(item.getName());
-            }
-
-            DiscoverInfo discoInfo = discoManager.discoverInfo(cfg.getXmppServer());
-            it = discoInfo.getIdentities();
-            System.out.println("Discovered info: ");
-            while (it.hasNext()) {
-                DiscoverInfo.Identity identity = (DiscoverInfo.Identity) it.next();
-                System.out.println(identity.getName());
-                System.out.println(identity.getType());
-                System.out.println(identity.getCategory());
-            }
+//            DiscoverItems discoItems = discoManager.discoverItems(cfg.getXmppServer());
+//            Iterator it = discoItems.getItems();
+//
+//            System.out.println("Discovered items: ");
+//            while (it.hasNext()) {
+//                DiscoverItems.Item item = (DiscoverItems.Item) it.next();
+//                System.out.println(item.getEntityID());
+//                System.out.println(item.getNode());
+//                System.out.println(item.getName());
+//            }
+//
+//            DiscoverInfo discoInfo = discoManager.discoverInfo(cfg.getXmppServer());
+//            it = discoInfo.getIdentities();
+//            System.out.println("Discovered info: ");
+//            while (it.hasNext()) {
+//                DiscoverInfo.Identity identity = (DiscoverInfo.Identity) it.next();
+//                System.out.println(identity.getName());
+//                System.out.println(identity.getType());
+//                System.out.println(identity.getCategory());
+//            }
 
         } catch (XMPPException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -221,9 +208,13 @@ public class ConnectionManager {
     }
 
     public void publishRevision(String revision) {
-        String newId =  newId();
-        JFSNotification jfsn = new JFSNotification(newId, NotificationType.UPDATE, revision);
-        pepManager.publish(jfsn);
+//        String newId =  newId();
+//        JFSNotification jfsn = new JFSNotification(newId, NotificationType.UPDATE, revision);
+
+        presence.removeExtension(presence.getExtension(JFSPacketExtension.NAMESPACE));
+        presence.addExtension(new JFSPacketExtension(NotificationType.UPDATE, revision));
+        connection.sendPacket(presence);
+//        pepManager.publish(jfsn);
     }
 
     public void subscribe(String to) {

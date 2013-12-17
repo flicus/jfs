@@ -55,14 +55,16 @@ public class XmppTest {
 
         String revision1 = "node1_1";
         connectionManager1.publishRevision(revision1);
-        Thread.sleep(1000*60*5);
+        Thread.sleep(1000);
         assertEquals(revision1, connectionManager2.getLastReceivedRevision());
 
 
         String revision2 = "node2_1";
         connectionManager2.publishRevision(revision2);
-        Thread.sleep(1000*60*5);
+        Thread.sleep(1000);
         assertEquals(revision2, connectionManager1.getLastReceivedRevision());
+
+        //Thread.sleep(600*60*1000);
     }
 
     @After
