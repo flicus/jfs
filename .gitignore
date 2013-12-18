@@ -9,3 +9,4 @@ master.iml
 jfs.iml
 .classpath
 .project
+*.stackdump
