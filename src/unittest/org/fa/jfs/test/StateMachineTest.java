@@ -70,30 +70,17 @@ public class StateMachineTest {
         context.put("sid", "0xffff");
 
         SmTransition t1 = new SmTransition(sm.start, state1, startEvent.getId());
-        sm.start.addTransition(startEvent, t1);
-
         // from state1 to action1 on ev1
         SmTransition t2 = new SmTransition(state1, a1, ev1.getId());
-        state1.addTransition(ev1, t2);
         //to end if timeout
         SmTransition t3 = new SmTransition(state1, sm.end, SmEvent._timeout.getId());
-        state1.addTransition(SmEvent._timeout, t3);
-
         // from action1 to the state2 to wait request remote repository result
         SmTransition t4 = new SmTransition(a1, state2, SmEvent._ok.getId());
-        a1.addTransition(SmEvent._ok, t4);
         //from action1 to state1 if nothing to do, waiting for RemoteVersionRes again
         SmTransition t5 = new SmTransition(a1, state1, SmEvent._1.getId());
-        a1.addTransition(SmEvent._1, t5);
-
         SmTransition t6 = new SmTransition(state2, sm.end, SmEvent._timeout.getId());
-        state2.addTransition(SmEvent._timeout, t6);
-
         SmTransition t7 = new SmTransition(state2, a2, ev2.getId());
-        state2.addTransition(ev2, t7);
-
         SmTransition t8 = new SmTransition(a2, sm.end, SmEvent._ok.getId());
-        a2.addTransition(SmEvent._ok, t8);
 
     }
 

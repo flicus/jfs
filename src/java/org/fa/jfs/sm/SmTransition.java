@@ -30,6 +30,7 @@ public class SmTransition {
         this.fromNode = fromNode;
         this.toNode = toNode;
         this.triggerEventClass = triggerEventClass;
+        fromNode.addTransition(triggerEventClass, this);
     }
 
     public SmNode getFromNode() {

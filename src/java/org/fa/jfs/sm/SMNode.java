@@ -26,8 +26,8 @@ public abstract class SmNode {
     protected Map<String, SmTransition> routes = new HashMap<String, SmTransition>();
     private String description;
 
-    public void addTransition(SmEvent event, SmTransition transition) {
-        routes.put(event.getId(), transition);
+    public void addTransition(String eventClass, SmTransition transition) {
+        routes.put(eventClass, transition);
         transition.setFromNode(this);
     }
 
