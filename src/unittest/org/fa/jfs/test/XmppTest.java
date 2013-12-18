@@ -20,7 +20,7 @@ package org.fa.jfs.test;
 
 import org.fa.jfs.common.Configuration;
 import org.fa.jfs.common.ConfigurationFactory;
-import org.fa.jfs.xmpp.SessionManager;
+import org.fa.jfs.xmpp.XMPPRemoteConnector;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,11 +29,11 @@ import static org.junit.Assert.*;
 
 public class XmppTest {
 
-    private SessionManager sessionManager1 = new SessionManager();
-    private Configuration cfg1 = ConfigurationFactory.getInstance().getConfiguration("./configuration.xml");
+    private XMPPRemoteConnector sessionManager1 = new XMPPRemoteConnector();
+    private Configuration cfg1 = ConfigurationFactory.getInstance().getConfiguration("./etc/configuration_local1.xml");
 
-    private SessionManager sessionManager2 = new SessionManager();
-    private Configuration cfg2 = ConfigurationFactory.getInstance().getConfiguration("./configuration2.xml");
+    private XMPPRemoteConnector sessionManager2 = new XMPPRemoteConnector();
+    private Configuration cfg2 = ConfigurationFactory.getInstance().getConfiguration("./etc/configuration_local2.xml");
 
 
     @Before
@@ -54,16 +54,18 @@ public class XmppTest {
         //Thread.sleep(1000);
 
         String revision1 = "node1_1";
-        sessionManager1.publishRevision(revision1);
-        Thread.sleep(1000);
+        sessionManager1.updateLocalRevision(revision1);
+        Thread.sleep(5000);
         assertEquals(revision1, sessionManager2.getLastReceivedRevision());
 
 
         String revision2 = "node2_1";
-        sessionManager2.publishRevision(revision2);
-        Thread.sleep(1000);
+        sessionManager2.updateLocalRevision(revision2);
+        Thread.sleep(5000);
         assertEquals(revision2, sessionManager1.getLastReceivedRevision());
+
     }
+
 
     @After
     public void tearDown() throws Exception {

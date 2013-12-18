@@ -1,0 +1,6 @@
+<configuration>
+    <xmppServer>moa</xmppServer>
+    <xmppLogin>test1</xmppLogin>
+    <xmppPassword>1</xmppPassword>
+    <xmppResource>res</xmppResource>
+</configuration>

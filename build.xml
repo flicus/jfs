@@ -75,7 +75,7 @@
         </jar>
 
         <copy todir="${out.dir}">
-            <file name="${basedir}/configuration.xml" file="configuration.xml"/>
+            <file name="${basedir}/configuration.xml" file="etc/configuration.xml"/>
             <!--<fileset dir="${basedir}/etc" includes="**/*.*"/>-->
         </copy>
 
