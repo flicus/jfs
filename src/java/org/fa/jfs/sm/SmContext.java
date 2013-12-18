@@ -16,10 +16,22 @@
  *  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.fa.jfs.xmpp;
+package org.fa.jfs.sm;
 
-public interface RemoteRepListener {
+import java.util.HashMap;
+import java.util.Map;
 
-    public void JFSPresenceReceived(JFSPacketExtension jfsInfo);
+public class SmContext {
+    private Map<String, Object> properties = new HashMap<String, Object>();
 
+    public SmContext() {
+    }
+
+    public Object put(String key, Object value) {
+        return properties.put(key, value);
+    }
+
+    public Object get(String key) {
+        return properties.get(key);
+    }
 }

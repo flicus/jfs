@@ -30,10 +30,10 @@ import static org.junit.Assert.*;
 public class XmppTest {
 
     private XMPPRemoteConnector sessionManager1 = new XMPPRemoteConnector();
-    private Configuration cfg1 = ConfigurationFactory.getInstance().getConfiguration("./etc/configuration_local1.xml");
+    private Configuration cfg1 = ConfigurationFactory.getInstance().getConfiguration("./etc/configuration.xml");
 
     private XMPPRemoteConnector sessionManager2 = new XMPPRemoteConnector();
-    private Configuration cfg2 = ConfigurationFactory.getInstance().getConfiguration("./etc/configuration_local2.xml");
+    private Configuration cfg2 = ConfigurationFactory.getInstance().getConfiguration("./etc/configuration2.xml");
 
 
     @Before

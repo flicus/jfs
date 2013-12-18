@@ -16,10 +16,21 @@
  *  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.fa.jfs.xmpp;
+package org.fa.jfs.sm.events;
 
-public interface RemoteRepListener {
+import org.fa.jfs.sm.SmEvent;
+import org.fa.jfs.xmpp.JFSPacketExtension;
 
-    public void JFSPresenceReceived(JFSPacketExtension jfsInfo);
+public class RemoteVersionRes extends SmEvent {
 
+    private JFSPacketExtension jfsPacketExtension;
+
+    public RemoteVersionRes(JFSPacketExtension jfsPacketExtension) {
+        super(RemoteVersionRes.class.getSimpleName());
+        this.jfsPacketExtension = jfsPacketExtension;
+    }
+
+    public JFSPacketExtension getJfsPacketExtension() {
+        return jfsPacketExtension;
+    }
 }

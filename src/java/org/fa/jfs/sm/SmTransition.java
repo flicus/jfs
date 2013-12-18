@@ -16,27 +16,54 @@
  *  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.fa.jfs.xmpp;
+package org.fa.jfs.sm;
 
-public final class JFSManager implements RemoteRepListener {
+public class SmTransition {
+    private SmNode fromNode;
+    private SmNode toNode;
+    private String triggerEventClass;
 
-    private static XMPPRemoteConnector sessionManager;
-
-    private JFSManager() {
-
+    public SmTransition() {
     }
 
-    public XMPPRemoteConnector getSessionManager() {
-        if (sessionManager == null) {
-            sessionManager = new XMPPRemoteConnector();
-            sessionManager.setListener(this);
-        }
-        return sessionManager;
+    public SmTransition(SmNode fromNode, SmNode toNode, String triggerEventClass) {
+        this.fromNode = fromNode;
+        this.toNode = toNode;
+        this.triggerEventClass = triggerEventClass;
     }
 
+    public SmNode getFromNode() {
+        return fromNode;
+    }
+
+    public SmTransition setFromNode(SmNode fromNode) {
+        this.fromNode = fromNode;
+        return this;
+    }
+
+    public SmNode getToNode() {
+        return toNode;
+    }
+
+    public SmTransition setToNode(SmNode toNode) {
+        this.toNode = toNode;
+        return this;
+    }
+
+    public String getTriggerEventClass() {
+        return triggerEventClass;
+    }
+
+    public void setTriggerEventClass(String triggerEventClass) {
+        this.triggerEventClass = triggerEventClass;
+    }
 
     @Override
-    public void JFSPresenceReceived(JFSPacketExtension jfsInfo) {
-
+    public String toString() {
+        return "SmTransition{" +
+                "fromNode=" + fromNode +
+                ", toNode=" + toNode +
+                ", triggerEventClass='" + triggerEventClass + '\'' +
+                '}';
     }
 }

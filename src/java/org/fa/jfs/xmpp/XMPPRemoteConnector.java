@@ -60,9 +60,6 @@ public class XMPPRemoteConnector implements RemoteRepConnector {
 
     public XMPPRemoteConnector() {
 
-        //to workaround bug in smack
-        ServiceDiscoveryManager.getIdentityName();
-
         Connection.DEBUG_ENABLED = true;
         lastReceivedRevision = "";
 
@@ -83,17 +80,20 @@ public class XMPPRemoteConnector implements RemoteRepConnector {
         config.setSecurityMode(ConnectionConfiguration.SecurityMode.enabled);
 
         connection = new XMPPConnection(config);
-        discoManager = ServiceDiscoveryManager.getInstanceFor(connection);
-        //supported features
-        for (String item : features) {
-            discoManager.addFeature(item);
-        }
 
         try {
             connection.connect();
             connection.login(cfg.getXmppLogin(), cfg.getXmppPassword(), cfg.getXmppResource());
             connection.addPacketListener(new PresenceListener(), new PacketTypeFilter(Presence.class));
             ProviderManager.getInstance().addExtensionProvider(JFSPacketExtension.NAME, JFSPacketExtension.NAMESPACE, new JFSPacketExtProvider());
+
+            //to workaround bug in smack
+            ServiceDiscoveryManager.getIdentityName();
+            discoManager = ServiceDiscoveryManager.getInstanceFor(connection);
+            //supported features
+            for (String item : features) {
+                discoManager.addFeature(item);
+            }
 
             for (RosterEntry entry : connection.getRoster().getEntries()) {
                 System.out.println("Roster.entry: " + entry.toString());
@@ -144,12 +144,12 @@ public class XMPPRemoteConnector implements RemoteRepConnector {
     }
 
     @Override
-    public void requestRemoteFiles() {
+    public void requestRemoteFileSet() {
 
     }
 
     @Override
-    public void sendLocalFiles() {
+    public void sendLocalFileSet() {
 
     }
 

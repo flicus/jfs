@@ -16,10 +16,46 @@
  *  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.fa.jfs.xmpp;
+package org.fa.jfs.sm;
 
-public interface RemoteRepListener {
+public class SmAction extends SmNode {
 
-    public void JFSPresenceReceived(JFSPacketExtension jfsInfo);
+    private Action action;
+    private ActionType actionType;
 
+    public SmAction(ActionType actionType, Action action) {
+        this.actionType = actionType;
+        this.action = action;
+    }
+
+    public Action getAction() {
+        return action;
+    }
+
+    public void setAction(Action action) {
+        this.action = action;
+    }
+
+    public ActionType getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(ActionType actionType) {
+        this.actionType = actionType;
+    }
+
+    @Override
+    public SmNode processEvent(SmEvent event, SmContext context) {
+        return action.execute(event, context, this);
+    }
+
+    public interface Action {
+        public SmNode execute(SmEvent event, SmContext context, SmAction smAction);
+    }
+
+    public enum ActionType {
+        START,
+        INTER,
+        END
+    }
 }
