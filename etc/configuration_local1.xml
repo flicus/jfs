@@ -1,6 +1,7 @@
 <configuration>
-    <xmppServer>moa</xmppServer>
+    <xmppServer>koko</xmppServer>
     <xmppLogin>test1</xmppLogin>
     <xmppPassword>1</xmppPassword>
     <xmppResource>res</xmppResource>
+    <repositoryPath>./etc/rep1</repositoryPath>
 </configuration>

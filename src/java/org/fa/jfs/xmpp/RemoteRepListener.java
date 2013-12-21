@@ -18,8 +18,17 @@
 
 package org.fa.jfs.xmpp;
 
+import org.fa.jfs.repository.RepositoryRecord;
+import org.fa.jfs.xmpp.packets.JFSGetRepository;
+import org.fa.jfs.xmpp.packets.JFSInfo;
+
+import java.io.File;
+
 public interface RemoteRepListener {
 
-    public void JFSPresenceReceived(JFSPacketExtension jfsInfo);
+    public void jfsInfoReceived(String remoteAddress, JFSInfo jfsInfo);
+    public void jfsGetRepositoryReceived(String remoteAddress, JFSGetRepository jfsGetRepository);
+    public boolean jfsRemoteFileTranferReceived(String remoteAddress, String fileName);
+    public void jfsRemoteFileReceived(File file);
 
 }

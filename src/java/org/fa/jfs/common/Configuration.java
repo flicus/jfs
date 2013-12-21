@@ -24,16 +24,17 @@ public class Configuration {
     private String xmppLogin;
     private String xmppPassword;
     private String xmppResource;
+    private String repositoryPath;
 
     public Configuration() {
     }
-    //
 
-    public Configuration(String xmppServer, String xmppLogin, String xmppPassword, String xmppResource) {
+    public Configuration(String xmppServer, String xmppLogin, String xmppPassword, String xmppResource, String repositoryPath) {
         this.xmppServer = xmppServer;
         this.xmppLogin = xmppLogin;
         this.xmppPassword = xmppPassword;
         this.xmppResource = xmppResource;
+        this.repositoryPath = repositoryPath;
     }
 
     public String getXmppServer() {
@@ -68,6 +69,14 @@ public class Configuration {
         this.xmppResource = xmppResource;
     }
 
+    public String getRepositoryPath() {
+        return repositoryPath;
+    }
+
+    public void setRepositoryPath(String repositoryPath) {
+        this.repositoryPath = repositoryPath;
+    }
+
     @Override
     public String toString() {
         return "Configuration{" +
@@ -75,6 +84,7 @@ public class Configuration {
                 ", xmppLogin='" + xmppLogin + '\'' +
                 ", xmppPassword='" + xmppPassword + '\'' +
                 ", xmppResource='" + xmppResource + '\'' +
+                ", repositoryPath='" + repositoryPath + '\'' +
                 '}';
     }
 }

@@ -16,23 +16,18 @@
  *  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.fa.jfs.xmpp;
-
-import org.fa.jfs.common.Configuration;
-import org.fa.jfs.repository.RepositoryRecord;
+package org.fa.jfs.repository;
 
 import java.io.File;
 import java.util.List;
 
-public interface RemoteRepConnector {
+public interface LocalRepConnector {
 
-    public void setListener(RemoteRepListener listener);
-
-    public boolean connect(Configuration cfg);
-    public void updateLocalRevision(String revision);
-    public void requestRemoteRepository(String remoteAddress);
-    public void sendLocalRepository(String remoteAddress, List<RepositoryRecord> repository);
-    public void requestRemoteFileSet(String remoteAddress, List<RepositoryRecord> fileSet);
-    public void sendLocalFile(String remoteAddress, File file2send);
+    public void setListener(LocalRepListener listener);
+    public List<RepositoryRecord> getRepository();
+    public List<RepositoryRecord> getRecordsToSync(List<RepositoryRecord> remoteRep);
+    public String getRepositoryVersion();
+    public void storeFile(File newFile);
+    public File getFile(RepositoryRecord record);
 
 }

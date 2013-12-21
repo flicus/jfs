@@ -20,27 +20,28 @@ package org.fa.jfs.xmpp;
 
 import org.fa.jfs.common.Configuration;
 import org.fa.jfs.common.GUIDGenerator;
+import org.fa.jfs.repository.RepositoryRecord;
+import org.fa.jfs.xmpp.packets.*;
 import org.jivesoftware.smack.*;
-import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.filter.PacketTypeFilter;
+import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.provider.ProviderManager;
 import org.jivesoftware.smack.util.StringUtils;
-import org.jivesoftware.smackx.NodeInformationProvider;
 import org.jivesoftware.smackx.ServiceDiscoveryManager;
+import org.jivesoftware.smackx.filetransfer.*;
 import org.jivesoftware.smackx.packet.DiscoverInfo;
-import org.jivesoftware.smackx.packet.DiscoverItems;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.io.File;
 import java.util.List;
 
 public class XMPPRemoteConnector implements RemoteRepConnector {
 
     private Connection connection;
     private ServiceDiscoveryManager discoManager;
+    private FileTransferManager fileTransferManager;
     private String lastReceivedRevision;
     private RemoteRepListener remoteRepListener;
 
@@ -53,7 +54,7 @@ public class XMPPRemoteConnector implements RemoteRepConnector {
             "http://jabber.org/protocol/si",                    //xep-0095
             "http://jabber.org/protocol/si/profile/file-transfer",  //xep-0096
             "http://jabber.org/protocol/ibb",   //xep-0047
-            JFSPacketExtension.NAMESPACE    // our megafeature!!!
+            JFSInfo.NAMESPACE    // our megafeature!!!
     };
 
     private static final DiscoverInfo.Identity identity = new DiscoverInfo.Identity("client", "JFS client"/*, "bot"*/);
@@ -85,7 +86,12 @@ public class XMPPRemoteConnector implements RemoteRepConnector {
             connection.connect();
             connection.login(cfg.getXmppLogin(), cfg.getXmppPassword(), cfg.getXmppResource());
             connection.addPacketListener(new PresenceListener(), new PacketTypeFilter(Presence.class));
-            ProviderManager.getInstance().addExtensionProvider(JFSPacketExtension.NAME, JFSPacketExtension.NAMESPACE, new JFSPacketExtProvider());
+            connection.addPacketListener(new JFSMessageListener(), new PacketTypeFilter(Message.class));
+            ProviderManager.getInstance().addExtensionProvider(JFSInfo.NAME, JFSInfo.NAMESPACE, new JFSInfoProvider());
+            ProviderManager.getInstance().addExtensionProvider(JFSGetRepository.NAME, JFSGetRepository.NAMESPACE, new JFSGetRepositoryProvider());
+
+            fileTransferManager = new FileTransferManager(connection);
+            fileTransferManager.addFileTransferListener(new JFSTransferListener());
 
             //to workaround bug in smack
             ServiceDiscoveryManager.getIdentityName();
@@ -134,23 +140,44 @@ public class XMPPRemoteConnector implements RemoteRepConnector {
     @Override
     public void updateLocalRevision(String revision) {
         Presence presence = new Presence(Presence.Type.available, "Ready", 10, Presence.Mode.available);
-        presence.addExtension(new JFSPacketExtension(NotificationType.UPDATE, revision));
+        presence.addExtension(new JFSInfo(NotificationType.UPDATE, revision));
         connection.sendPacket(presence);
     }
 
     @Override
-    public void requestRemoteRepository() {
-
+    public void requestRemoteRepository(String remoteAddress) {
+        JFSGetRepository jfsGetRepository = new JFSGetRepository(true);
+        Message message = new Message(remoteAddress);
+        message.addExtension(jfsGetRepository);
+        connection.sendPacket(message);
     }
 
     @Override
-    public void requestRemoteFileSet() {
-
+    public void sendLocalRepository(String remoteAddress, List<RepositoryRecord> repository) {
+        JFSGetRepository jfsGetRepository = new JFSGetRepository(false);
+        jfsGetRepository.setItems(repository);
+        Message message = new Message(remoteAddress);
+        message.addExtension(jfsGetRepository);
+        connection.sendPacket(message);
     }
 
     @Override
-    public void sendLocalFileSet() {
+    public void requestRemoteFileSet(String remoteAddress, List<RepositoryRecord> fileSet) {
+        JFSGetRepository jfsGetRepository = new JFSGetRepository(true);
+        jfsGetRepository.setItems(fileSet);
+        Message message = new Message(remoteAddress);
+        message.addExtension(jfsGetRepository);
+        connection.sendPacket(message);
+    }
 
+    @Override
+    public void sendLocalFile(String remoteAddress, File file2send) {
+        OutgoingFileTransfer transfer = fileTransferManager.createOutgoingFileTransfer(remoteAddress);
+        try {
+            transfer.sendFile(file2send, "");
+        } catch (XMPPException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
     }
 
 
@@ -172,13 +199,43 @@ public class XMPPRemoteConnector implements RemoteRepConnector {
                     subscribed.setTo(f);
                     connection.sendPacket(subscribed);
                 } else {
-                    PacketExtension pe = presence.getExtension(JFSPacketExtension.NAMESPACE);
+                    PacketExtension pe = presence.getExtension(JFSInfo.NAMESPACE);
                     if (pe != null) {
-                        JFSPacketExtension jfsPacketExtension = (JFSPacketExtension)pe;
-                        lastReceivedRevision = jfsPacketExtension.getRepositoryVersion();
+                        JFSInfo jfsInfo = (JFSInfo)pe;
+                        remoteRepListener.jfsInfoReceived(packet.getFrom(), jfsInfo);
                     }
                 }
             }
+        }
+    }
+
+    private class JFSMessageListener implements PacketListener {
+
+        @Override
+        public void processPacket(Packet packet) {
+            Message message = (Message)packet;
+            for (PacketExtension pe : message.getExtensions()) {
+                if (pe instanceof JFSGetRepository) {
+                    remoteRepListener.jfsGetRepositoryReceived(packet.getFrom(), (JFSGetRepository) pe);
+                }
+            }
+        }
+    }
+
+    private class JFSTransferListener implements FileTransferListener {
+
+        @Override
+        public void fileTransferRequest(FileTransferRequest request) {
+            if (remoteRepListener.jfsRemoteFileTranferReceived(request.getRequestor(), request.getFileName())) {
+                IncomingFileTransfer transfer = request.accept();
+                File newFile = new File("d:\\tmp\\"+request.getFileName());
+                try {
+                    transfer.recieveFile(newFile);
+                    remoteRepListener.jfsRemoteFileReceived(newFile);
+                } catch (XMPPException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
+            } else request.reject();
         }
     }
 }

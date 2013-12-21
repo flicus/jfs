@@ -20,52 +20,222 @@ package org.fa.jfs.test;
 
 import org.fa.jfs.common.Configuration;
 import org.fa.jfs.common.ConfigurationFactory;
+import org.fa.jfs.repository.FileConnector;
+import org.fa.jfs.repository.RepositoryRecord;
+import org.fa.jfs.xmpp.RemoteRepListener;
 import org.fa.jfs.xmpp.XMPPRemoteConnector;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.fa.jfs.xmpp.packets.JFSGetRepository;
+import org.fa.jfs.xmpp.packets.JFSInfo;
+import org.junit.*;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.*;
 
 public class XmppTest {
 
+    private Configuration cfg1 = ConfigurationFactory.getInstance().getConfiguration("./etc/configuration_local1.xml");
     private XMPPRemoteConnector sessionManager1 = new XMPPRemoteConnector();
-    private Configuration cfg1 = ConfigurationFactory.getInstance().getConfiguration("./etc/configuration.xml");
+    private FileConnector repositoryManager1 = new FileConnector(cfg1);
 
+
+    private Configuration cfg2 = ConfigurationFactory.getInstance().getConfiguration("./etc/configuration_local2.xml");
     private XMPPRemoteConnector sessionManager2 = new XMPPRemoteConnector();
-    private Configuration cfg2 = ConfigurationFactory.getInstance().getConfiguration("./etc/configuration2.xml");
+    private FileConnector repositoryManager2 = new FileConnector(cfg2);
+
+    private String address1 = cfg1.getXmppLogin() + "@" + cfg1.getXmppServer();
+    private String address2 = cfg2.getXmppLogin() + "@" + cfg2.getXmppServer();
+
+    private CountDownLatch done = new CountDownLatch(1);
+
 
 
     @Before
     public void setUp() throws Exception {
-//        sessionManager1 =
-//        sessionManager2 = new SessionManager();
+
+        deleteFiles(new File(cfg1.getRepositoryPath()));
+        deleteFiles(new File(cfg2.getRepositoryPath()));
+
+        File testDir = new File("./etc/test");
+        assertTrue(testDir.isDirectory());
+        File[] files = testDir.listFiles();
+        for (File file : files) {
+            Files.copy(file.toPath(), new File(cfg1.getRepositoryPath()+File.separator+file.getName()).toPath());
+        }
+
+        repositoryManager1.setRepositoryVersion("2");
+        repositoryManager2.setRepositoryVersion("1");
+
+        System.out.println("! Peer1::connecting");
+        assertTrue(sessionManager1.connect(cfg1));
+        System.out.println("! Peer2::connecting");
+        assertTrue(sessionManager2.connect(cfg2));
+    }
+
+    private void deleteFiles(File file) {
+        File[] files = file.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.isFile();
+            }
+        });
+        for (File f : files) {
+            f.delete();
+        }
     }
 
     @Test
-    public void testXmppConnect() throws Exception {
-        assertTrue(sessionManager1.connect(cfg1));
-        assertTrue(sessionManager2.connect(cfg2));
+    public void testJFSGetRepository() throws InterruptedException {
 
-        //sessionManager1.subscribe(cfg2.getXmppLogin() + "@" + cfg2.getXmppServer());
-        //Thread.sleep(1000);
+        // peer1 have 2 files in its repository, peer2 have none
+        // peer1 announce repository version, peer2 got this notification and request repository info from peer1
+        // peer1 send repository to peer2, peer2 compares local rep with received rep of peer1 and decided to
+        // request difference (these 2 files) from peer1, peer1 got fileset request and send requested files to
+        // peer2. peer2 receives these files and stores it in local rep
 
-        //sessionManager2.subscribe(cfg1.getXmppLogin() + "@" + cfg1.getXmppServer());
-        //Thread.sleep(1000);
+        sessionManager1.setListener(new RemoteRepListener() {
 
-        String revision1 = "node1_1";
-        sessionManager1.updateLocalRevision(revision1);
-        Thread.sleep(5000);
-        assertEquals(revision1, sessionManager2.getLastReceivedRevision());
+            private Map<String, List<RepositoryRecord>> filesRequested = new HashMap<>();
 
+            @Override
+            public void jfsInfoReceived(String remoteAddress, JFSInfo jfsInfo) {
+                System.out.println(String.format("! Peer1::Remote repository version received from: %s, %s", remoteAddress, jfsInfo.getRepositoryVersion()));
+                if (!jfsInfo.getRepositoryVersion().equals(repositoryManager1.getRepositoryVersion())) {
+                    System.out.println("! Peer1::Remote repository version is differ, sending RemoteRepReq");
+                    sessionManager1.requestRemoteRepository(remoteAddress);
+                }
+            }
 
-        String revision2 = "node2_1";
-        sessionManager2.updateLocalRevision(revision2);
-        Thread.sleep(5000);
-        assertEquals(revision2, sessionManager1.getLastReceivedRevision());
+            @Override
+            public void jfsGetRepositoryReceived(String remoteAddress, JFSGetRepository jfsGetRepository) {
+                if (jfsGetRepository.isRequest()) {
+                    if (jfsGetRepository.getItems() == null) {
+                        System.out.println(String.format("! Peer1::Repository request received from: %s", remoteAddress));
+                        sessionManager1.sendLocalRepository(remoteAddress, repositoryManager1.getRepository());
+                    } else {
+                        System.out.println(String.format("! Peer1::Repository sync received from: %s for files: ", remoteAddress, jfsGetRepository.getItems()));
+                        for (RepositoryRecord record : jfsGetRepository.getItems()) {
+                            sessionManager1.sendLocalFile(remoteAddress, repositoryManager1.getFile(record)); //todo check existance
+                        }
+                    }
+                } else {
+                    System.out.println(String.format("! Peer1::Requested repository received from: %s, %s", remoteAddress, jfsGetRepository.getItems()));
+                    List<RepositoryRecord> toSync = repositoryManager1.getRecordsToSync(jfsGetRepository.getItems());
+                    System.out.println("after getRecordsToSync");
+                    if (toSync.size() > 0) {
+                        System.out.println(String.format("! Peer1::Found repository diff: %s", toSync));
+                        List<RepositoryRecord> requested = filesRequested.get(remoteAddress);
+                        if (requested == null) {
+                            requested = new ArrayList<RepositoryRecord>();
+                            filesRequested.put(remoteAddress, requested);
+                        }
+                        requested.clear();
+                        requested.addAll(toSync);
+                        sessionManager1.requestRemoteFileSet(remoteAddress, toSync);
+                    }
+                }
+            }
 
+            @Override
+            public boolean jfsRemoteFileTranferReceived(String remoteAddress, String fileName) {
+                List<RepositoryRecord> requested = filesRequested.get(remoteAddress);
+                boolean found = false;
+                if (requested != null) {
+                    for (RepositoryRecord record : requested) {
+                        if (record.getName().equals(fileName)) {
+                            System.out.println(String.format("! Peer1::Received file permitted: %s", fileName));
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                return found;
+            }
+
+            @Override
+            public void jfsRemoteFileReceived(File file) {
+                System.out.println("! Peer1::Remote file received, storing in repository: "+file);
+                repositoryManager1.storeFile(file);
+            }
+        });
+
+        sessionManager2.setListener(new RemoteRepListener() {
+
+            private Map<String, List<RepositoryRecord>> filesRequested = new HashMap<>();
+
+            @Override
+            public void jfsInfoReceived(String remoteAddress, JFSInfo jfsInfo) {
+                System.out.println(String.format("! Peer2::Remote repository version received from: %s, %s", remoteAddress, jfsInfo.getRepositoryVersion()));
+                if (!jfsInfo.getRepositoryVersion().equals(repositoryManager2.getRepositoryVersion())) {
+                    System.out.println("! Peer2::Remote repository version is differ, sending RemoteRepReq");
+                    sessionManager2.requestRemoteRepository(remoteAddress);
+                }
+            }
+
+            @Override
+            public void jfsGetRepositoryReceived(String remoteAddress, JFSGetRepository jfsGetRepository) {
+                if (jfsGetRepository.isRequest()) {
+                    if (jfsGetRepository.getItems() == null) {
+                        System.out.println(String.format("! Peer2::Repository request received from: %s", remoteAddress));
+                        sessionManager2.sendLocalRepository(remoteAddress, repositoryManager2.getRepository());
+                    } else {
+                        System.out.println(String.format("! Peer2::Repository sync received from: %s for files: ", remoteAddress, jfsGetRepository.getItems()));
+                        for (RepositoryRecord record : jfsGetRepository.getItems()) {
+                            sessionManager2.sendLocalFile(remoteAddress, repositoryManager2.getFile(record)); //todo check existance
+                        }
+                    }
+                } else {
+                    System.out.println(String.format("! Peer2::Requested repository received from: %s, %s", remoteAddress, jfsGetRepository.getItems()));
+                    List<RepositoryRecord> toSync = repositoryManager2.getRecordsToSync(jfsGetRepository.getItems());
+                    if (toSync.size() > 0) {
+                        System.out.println(String.format("! Peer2::Found repository diff: %s", toSync));
+                        List<RepositoryRecord> requested = filesRequested.get(remoteAddress);
+                        if (requested == null) {
+                            requested = new ArrayList<RepositoryRecord>();
+                            filesRequested.put(remoteAddress, requested);
+                        }
+                        requested.clear();
+                        requested.addAll(toSync);
+                        sessionManager2.requestRemoteFileSet(remoteAddress, toSync);
+                    }
+                }
+            }
+
+            @Override
+            public boolean jfsRemoteFileTranferReceived(String remoteAddress, String fileName) {
+                List<RepositoryRecord> requested = filesRequested.get(remoteAddress);
+                boolean found = false;
+                if (requested != null) {
+                    for (RepositoryRecord record : requested) {
+                        if (record.getName().equals(fileName)) {
+                            System.out.println(String.format("! Peer2::Received file permitted: %s", fileName));
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                return found;
+            }
+
+            @Override
+            public void jfsRemoteFileReceived(File file) {
+                System.out.println("! Peer2::Remote file received, storing in repository: "+file);
+                repositoryManager2.storeFile(file);
+                done.countDown();
+            }
+        });
+
+        System.out.println("! Peer1::Updating local repository version: " + repositoryManager1.getRepositoryVersion());
+        sessionManager1.updateLocalRevision(repositoryManager1.getRepositoryVersion());
+        done.await();
     }
-
 
     @After
     public void tearDown() throws Exception {

@@ -3,4 +3,5 @@
     <xmppLogin>jfstest2</xmppLogin>
     <xmppPassword>jfstest2</xmppPassword>
     <xmppResource>res2</xmppResource>
+    <repositoryPath>./etc/rep2</repositoryPath>
 </configuration>

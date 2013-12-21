@@ -16,27 +16,7 @@
  *  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.fa.jfs.xmpp;
+package org.fa.jfs.repository;
 
-public final class JFSManager implements RemoteRepListener {
-
-    private static XMPPRemoteConnector sessionManager;
-
-    private JFSManager() {
-
-    }
-
-    public XMPPRemoteConnector getSessionManager() {
-        if (sessionManager == null) {
-            sessionManager = new XMPPRemoteConnector();
-            sessionManager.setListener(this);
-        }
-        return sessionManager;
-    }
-
-
-    @Override
-    public void JFSPresenceReceived(JFSPacketExtension jfsInfo) {
-
-    }
+public interface LocalRepListener {
 }

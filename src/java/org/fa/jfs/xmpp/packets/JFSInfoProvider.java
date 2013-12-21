@@ -16,39 +16,40 @@
  *  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.fa.jfs.xmpp;
+package org.fa.jfs.xmpp.packets;
 
+import org.fa.jfs.xmpp.NotificationType;
 import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.provider.PacketExtensionProvider;
 import org.xmlpull.v1.XmlPullParser;
 
-public class JFSPacketExtProvider implements PacketExtensionProvider {
+public class JFSInfoProvider implements PacketExtensionProvider {
     @Override
     public PacketExtension parseExtension(XmlPullParser parser) throws Exception {
         boolean done = false;
-        JFSPacketExtension jfsPacketExtension = new JFSPacketExtension();
+        JFSInfo jfsInfo = new JFSInfo();
         while (!done) {
             int eventType = parser.next();
             String name = parser.getName();
             if (eventType == XmlPullParser.START_TAG) {
-                if (name.equals(JFSPacketExtension.NAME)) {
+                if (name.equals(JFSInfo.NAME)) {
                     //String id = parser.getAttributeValue("", "id");
-                    jfsPacketExtension = new JFSPacketExtension();
+                    jfsInfo = new JFSInfo();
                 }
                 if (name.equals("type")) {
                     String text = parser.nextText();
-                    jfsPacketExtension.setNotificationType(NotificationType.valueOf(text));
+                    jfsInfo.setNotificationType(NotificationType.valueOf(text));
                 }
                 if (name.equals("version")) {
-                    jfsPacketExtension.setRepositoryVersion(parser.nextText());
+                    jfsInfo.setRepositoryVersion(parser.nextText());
                 }
             } else if (eventType == XmlPullParser.END_TAG) {
-                if (name.equals(JFSPacketExtension.NAME)) {
+                if (name.equals(JFSInfo.NAME)) {
                     done = true;
                 }
             }
 
         }
-        return jfsPacketExtension;
+        return jfsInfo;
     }
 }

@@ -18,13 +18,16 @@
 
 package org.fa.jfs.test;
 
+import com.thoughtworks.xstream.XStream;
 import org.fa.jfs.sm.*;
 import org.fa.jfs.sm.events.RemoteRepositoryRes;
 import org.fa.jfs.sm.events.RemoteVersionRes;
-import org.fa.jfs.xmpp.JFSPacketExtension;
+import org.fa.jfs.xmpp.packets.JFSInfo;
 import org.fa.jfs.xmpp.NotificationType;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.FileOutputStream;
 
 import static org.junit.Assert.*;
 
@@ -33,8 +36,8 @@ public class StateMachineTest {
     SmContext context = new SmContext();
     StateMachine sm = new StateMachine(context);
     int currentRepVersion = 5;
-    SmEvent ev1 = new RemoteVersionRes(new JFSPacketExtension(NotificationType.UPDATE, "12"));
-    SmEvent ev3 = new RemoteVersionRes(new JFSPacketExtension(NotificationType.UPDATE, "1"));
+    SmEvent ev1 = new RemoteVersionRes(new JFSInfo(NotificationType.UPDATE, "12"));
+    SmEvent ev3 = new RemoteVersionRes(new JFSInfo(NotificationType.UPDATE, "1"));
     SmEvent ev2 = new RemoteRepositoryRes("test");
     SmEvent startEvent = new SmEvent("start");
 
@@ -45,7 +48,7 @@ public class StateMachineTest {
         @Override
         public SmNode execute(SmEvent event, SmContext context, SmAction smAction) {
             RemoteVersionRes e = (RemoteVersionRes)event;
-            if (Integer.parseInt(e.getJfsPacketExtension().getRepositoryVersion()) > currentRepVersion) {
+            if (Integer.parseInt(e.getJfsInfo().getRepositoryVersion()) > currentRepVersion) {
                 // need to request remote repository here, then going to state for awaiting request result
                 // remote repository request call
                 return sm.next(smAction.getRoute(SmEvent._ok));
@@ -81,12 +84,19 @@ public class StateMachineTest {
         SmTransition t6 = new SmTransition(state2, sm.end, SmEvent._timeout.getId());
         SmTransition t7 = new SmTransition(state2, a2, ev2.getId());
         SmTransition t8 = new SmTransition(a2, sm.end, SmEvent._ok.getId());
-
     }
 
 
     @Test
     public void test1() throws Throwable {
+
+        XStream xs = new XStream();
+        xs.alias("StateMachine", StateMachine.class);
+        xs.alias("SmTransition", SmTransition.class);
+        xs.alias("SmState", SmState.class);
+        xs.alias("SmAction", SmAction.class);
+
+        xs.toXML(sm, new FileOutputStream("./etc/sm_text.xml"));
 
         assertFalse(sm.isFinished());
 

@@ -19,18 +19,18 @@
 package org.fa.jfs.sm.events;
 
 import org.fa.jfs.sm.SmEvent;
-import org.fa.jfs.xmpp.JFSPacketExtension;
+import org.fa.jfs.xmpp.packets.JFSInfo;
 
 public class RemoteVersionRes extends SmEvent {
 
-    private JFSPacketExtension jfsPacketExtension;
+    private JFSInfo jfsInfo;
 
-    public RemoteVersionRes(JFSPacketExtension jfsPacketExtension) {
+    public RemoteVersionRes(JFSInfo jfsInfo) {
         super(RemoteVersionRes.class.getSimpleName());
-        this.jfsPacketExtension = jfsPacketExtension;
+        this.jfsInfo = jfsInfo;
     }
 
-    public JFSPacketExtension getJfsPacketExtension() {
-        return jfsPacketExtension;
+    public JFSInfo getJfsInfo() {
+        return jfsInfo;
     }
 }

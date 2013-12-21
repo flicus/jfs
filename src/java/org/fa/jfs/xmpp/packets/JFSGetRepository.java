@@ -16,40 +16,45 @@
  *  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.fa.jfs.xmpp;
+package org.fa.jfs.xmpp.packets;
 
-import org.jivesoftware.smack.packet.PacketExtension;
+import org.fa.jfs.repository.RepositoryRecord;
 
-public class JFSPacketExtension implements PacketExtension {
+import java.util.List;
 
-    public static final String NAMESPACE = "http://0xffff.net/protocol/jfs-info";
-    public static final String NAME = "jfs-info";
+public class JFSGetRepository extends JFSPacket {
 
-    private NotificationType notificationType;
-    private String repositoryVersion;
+    public static final String NAME = "jfs-getrep";
 
-    public JFSPacketExtension() {
+    private boolean isRequest;
+    private List<RepositoryRecord> items;
+
+    public JFSGetRepository() {
     }
 
-    public JFSPacketExtension(NotificationType notificationType, String repositoryVersion) {
-        this.notificationType = notificationType;
-        this.repositoryVersion = repositoryVersion;
+    public JFSGetRepository(boolean request) {
+        isRequest = request;
     }
 
-    public NotificationType getNotificationType() {
-        return notificationType;
+    public JFSGetRepository(boolean request, List<RepositoryRecord> items) {
+        isRequest = request;
+        this.items = items;
     }
 
-    public void setNotificationType(NotificationType notificationType) {
-        this.notificationType = notificationType;
+    public boolean isRequest() {
+        return isRequest;
     }
 
-    public String getRepositoryVersion() {
-        return repositoryVersion;
+    public void setRequest(boolean request) {
+        isRequest = request;
     }
 
-    public void setRepositoryVersion(String repositoryVersion) {
-        this.repositoryVersion = repositoryVersion;
+    public List<RepositoryRecord> getItems() {
+        return items;
+    }
+
+    public void setItems(List<RepositoryRecord> items) {
+        this.items = items;
     }
 
     @Override
@@ -58,25 +63,23 @@ public class JFSPacketExtension implements PacketExtension {
     }
 
     @Override
-    public String getNamespace() {
-        return NAMESPACE;
-    }
-
-    @Override
     public String toXML() {
         StringBuilder buf = new StringBuilder();
         buf.append("<").append(NAME).append(" xmlns='").append(NAMESPACE).append("'>");
 
-        //type
-        buf.append("<").append("type").append(">");
-        buf.append(notificationType.name());
-        buf.append("</").append("type").append(">");
+        //request flag
+        buf.append("<isRequest>");
+        buf.append(isRequest);
+        buf.append("</isRequest>");
 
-        //version
-        buf.append("<").append("version").append(">");
-        buf.append(repositoryVersion);
-        buf.append("</").append("version").append(">");
-
+        //items
+        if (items != null) {
+            buf.append("<RepositoryRecords>");
+            for (RepositoryRecord record : items){
+                buf.append(record.toXML());
+            }
+            buf.append("</RepositoryRecords>");
+        }
         buf.append("</").append(NAME).append(">");
         return buf.toString();
     }

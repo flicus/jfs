@@ -16,23 +16,17 @@
  *  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.fa.jfs.xmpp;
+package org.fa.jfs.xmpp.packets;
 
-import org.fa.jfs.common.Configuration;
-import org.fa.jfs.repository.RepositoryRecord;
+import org.jivesoftware.smack.packet.PacketExtension;
 
-import java.io.File;
-import java.util.List;
+public abstract class JFSPacket implements PacketExtension {
 
-public interface RemoteRepConnector {
+    public static final String NAMESPACE = "http://0xffff.net/protocol/jfs";
 
-    public void setListener(RemoteRepListener listener);
-
-    public boolean connect(Configuration cfg);
-    public void updateLocalRevision(String revision);
-    public void requestRemoteRepository(String remoteAddress);
-    public void sendLocalRepository(String remoteAddress, List<RepositoryRecord> repository);
-    public void requestRemoteFileSet(String remoteAddress, List<RepositoryRecord> fileSet);
-    public void sendLocalFile(String remoteAddress, File file2send);
+    @Override
+    public String getNamespace() {
+        return NAMESPACE;
+    }
 
 }
