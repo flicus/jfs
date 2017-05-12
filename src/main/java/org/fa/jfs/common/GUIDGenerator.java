@@ -34,6 +34,8 @@ public class GUIDGenerator {
     private static final int NODE_ID_SHIFT = 15; // shift address part
     private static final int TIME_SHIFT = 21; // shift time part
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS");
+    private static AtomicLong lLastCallTime;
+    private static AtomicInteger iIncrement;
 
     static {
         lLastCallTime = new AtomicLong(System.currentTimeMillis());
@@ -41,9 +43,6 @@ public class GUIDGenerator {
         int nIndex = 0; //todo
         nodeIndex = (((byte) nIndex) & NODE_ID_MASK) << NODE_ID_SHIFT;
     }
-
-    private static AtomicLong lLastCallTime;
-    private static AtomicInteger iIncrement;
 
     public static long getGUID() {
         return getGUID(nodeIndex);

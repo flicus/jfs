@@ -5,8 +5,7 @@ bin/*
 out/*
 lib/*
 test/*
-master.iml
-jfs.iml
+*.iml
 .classpath
 .project
 *.stackdump

@@ -18,44 +18,41 @@
 
 package org.fa.jfs.sm;
 
-public class SmAction extends SmNode {
+public class SmEvent {
 
-    private Action action;
-    private ActionType actionType;
+    public static final SmEvent _ok = new SmEvent("ok");
+    public static final SmEvent _error = new SmEvent("error");
+    public static final SmEvent _timeout = new SmEvent("timeout");
 
-    public SmAction(ActionType actionType, Action action) {
-        this.actionType = actionType;
-        this.action = action;
+    public static final SmEvent _1 = new SmEvent("1");
+    public static final SmEvent _2 = new SmEvent("2");
+    public static final SmEvent _3 = new SmEvent("3");
+    public static final SmEvent _4 = new SmEvent("4");
+    public static final SmEvent _5 = new SmEvent("5");
+
+
+
+    private String id;
+
+    public SmEvent() {
     }
 
-    public Action getAction() {
-        return action;
+    public SmEvent(String id) {
+        this.id = id;
     }
 
-    public void setAction(Action action) {
-        this.action = action;
+    public String getId() {
+        return id;
     }
 
-    public ActionType getActionType() {
-        return actionType;
-    }
-
-    public void setActionType(ActionType actionType) {
-        this.actionType = actionType;
+    public void setId(String id) {
+        this.id = id;
     }
 
     @Override
-    public SmNode processEvent(SmEvent event, SmContext context) {
-        return action.execute(event, context, this);
-    }
-
-    public interface Action {
-        public SmNode execute(SmEvent event, SmContext context, SmAction smAction);
-    }
-
-    public enum ActionType {
-        START,
-        INTER,
-        END
+    public String toString() {
+        return "SmEvent{" +
+                "id='" + id + '\'' +
+                '}';
     }
 }

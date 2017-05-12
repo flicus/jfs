@@ -26,7 +26,9 @@ import org.fa.jfs.xmpp.RemoteRepListener;
 import org.fa.jfs.xmpp.XMPPRemoteConnector;
 import org.fa.jfs.xmpp.packets.JFSGetRepository;
 import org.fa.jfs.xmpp.packets.JFSInfo;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -37,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 public class XmppTest {
 

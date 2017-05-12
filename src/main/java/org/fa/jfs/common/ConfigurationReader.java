@@ -16,26 +16,10 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.fa.jfs.test;
+package org.fa.jfs.common;
 
-import org.fa.jfs.common.Configuration;
-import org.fa.jfs.common.ConfigurationFactory;
-import org.junit.BeforeClass;
-import org.junit.Test;
+public interface ConfigurationReader {
 
-import static org.junit.Assert.*;
-
-public class ConfigurationTest {
-
-    @BeforeClass
-    public static void setUp() {
-
-    }
-
-    @Test
-    public void test1() throws Throwable {
-        Configuration cfg = ConfigurationFactory.getInstance().getConfiguration();
-        assertNotNull(cfg);
-    }
+    Configuration read(String filePath);
 
 }

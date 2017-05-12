@@ -26,13 +26,18 @@ import java.util.List;
 
 public interface RemoteRepConnector {
 
-    public void setListener(RemoteRepListener listener);
+    void setListener(RemoteRepListener listener);
 
-    public boolean connect(Configuration cfg);
-    public void updateLocalRevision(String revision);
-    public void requestRemoteRepository(String remoteAddress);
-    public void sendLocalRepository(String remoteAddress, List<RepositoryRecord> repository);
-    public void requestRemoteFileSet(String remoteAddress, List<RepositoryRecord> fileSet);
-    public void sendLocalFile(String remoteAddress, File file2send);
+    boolean connect(Configuration cfg);
+
+    void updateLocalRevision(String revision);
+
+    void requestRemoteRepository(String remoteAddress);
+
+    void sendLocalRepository(String remoteAddress, List<RepositoryRecord> repository);
+
+    void requestRemoteFileSet(String remoteAddress, List<RepositoryRecord> fileSet);
+
+    void sendLocalFile(String remoteAddress, File file2send);
 
 }

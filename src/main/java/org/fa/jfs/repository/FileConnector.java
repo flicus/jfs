@@ -22,7 +22,6 @@ import org.fa.jfs.common.Configuration;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,6 +83,10 @@ public class FileConnector implements LocalRepConnector {
         return repositoryVersion;
     }
 
+    public void setRepositoryVersion(String repositoryVersion) {
+        this.repositoryVersion = repositoryVersion;
+    }
+
     @Override
     public void storeFile(File newFile) {
         File toStore = new File(cfg.getRepositoryPath()+File.separator+newFile.getName());
@@ -94,9 +97,5 @@ public class FileConnector implements LocalRepConnector {
     public File getFile(RepositoryRecord record) {
         File toSend = new File(cfg.getRepositoryPath()+File.separator+record.getName());
         return toSend;
-    }
-
-    public void setRepositoryVersion(String repositoryVersion) {
-        this.repositoryVersion = repositoryVersion;
     }
 }

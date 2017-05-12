@@ -34,15 +34,11 @@ public class ConfigurationFactory {
     private ConfigurationReader reader;
 
 
+    public ConfigurationFactory() {
+    }
+
     public static ConfigurationFactory getInstance() {
         return Singleton.instance;
-    }
-
-    private static final class Singleton {
-        final static ConfigurationFactory instance = new ConfigurationFactory();
-    }
-
-    public ConfigurationFactory() {
     }
 
     public ConfigurationFactory setReader(ConfigurationReader reader) {
@@ -85,5 +81,9 @@ public class ConfigurationFactory {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         return reader;
+    }
+
+    private static final class Singleton {
+        final static ConfigurationFactory instance = new ConfigurationFactory();
     }
 }

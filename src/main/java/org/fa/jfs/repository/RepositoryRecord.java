@@ -91,9 +91,8 @@ public class RepositoryRecord {
 
         if (!lastModified.equals(that.lastModified)) return false;
         if (!name.equals(that.name)) return false;
-        if (!size.equals(that.size)) return false;
+        return size.equals(that.size);
 
-        return true;
     }
 
     @Override

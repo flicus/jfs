@@ -21,7 +21,10 @@ package org.fa.jfs.xmpp;
 import org.fa.jfs.common.Configuration;
 import org.fa.jfs.common.GUIDGenerator;
 import org.fa.jfs.repository.RepositoryRecord;
-import org.fa.jfs.xmpp.packets.*;
+import org.fa.jfs.xmpp.packets.JFSGetRepository;
+import org.fa.jfs.xmpp.packets.JFSGetRepositoryProvider;
+import org.fa.jfs.xmpp.packets.JFSInfo;
+import org.fa.jfs.xmpp.packets.JFSInfoProvider;
 import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.filter.PacketTypeFilter;
 import org.jivesoftware.smack.packet.Message;
@@ -39,12 +42,6 @@ import java.util.List;
 
 public class XMPPRemoteConnector implements RemoteRepConnector {
 
-    private Connection connection;
-    private ServiceDiscoveryManager discoManager;
-    private FileTransferManager fileTransferManager;
-    private String lastReceivedRevision;
-    private RemoteRepListener remoteRepListener;
-
     private static final String NODE = "http://0xffff.net/jfs";
     private static final String[] features = new String[]{
             "http://jabber.org/protocol/caps",  //xep-0163
@@ -56,8 +53,12 @@ public class XMPPRemoteConnector implements RemoteRepConnector {
             "http://jabber.org/protocol/ibb",   //xep-0047
             JFSInfo.NAMESPACE    // our megafeature!!!
     };
-
     private static final DiscoverInfo.Identity identity = new DiscoverInfo.Identity("client", "JFS client"/*, "bot"*/);
+    private Connection connection;
+    private ServiceDiscoveryManager discoManager;
+    private FileTransferManager fileTransferManager;
+    private String lastReceivedRevision;
+    private RemoteRepListener remoteRepListener;
 
     public XMPPRemoteConnector() {
 

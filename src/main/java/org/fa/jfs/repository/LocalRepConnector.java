@@ -23,11 +23,16 @@ import java.util.List;
 
 public interface LocalRepConnector {
 
-    public void setListener(LocalRepListener listener);
-    public List<RepositoryRecord> getRepository();
-    public List<RepositoryRecord> getRecordsToSync(List<RepositoryRecord> remoteRep);
-    public String getRepositoryVersion();
-    public void storeFile(File newFile);
-    public File getFile(RepositoryRecord record);
+    void setListener(LocalRepListener listener);
+
+    List<RepositoryRecord> getRepository();
+
+    List<RepositoryRecord> getRecordsToSync(List<RepositoryRecord> remoteRep);
+
+    String getRepositoryVersion();
+
+    void storeFile(File newFile);
+
+    File getFile(RepositoryRecord record);
 
 }

@@ -22,8 +22,8 @@ import com.thoughtworks.xstream.XStream;
 import org.fa.jfs.sm.*;
 import org.fa.jfs.sm.events.RemoteRepositoryRes;
 import org.fa.jfs.sm.events.RemoteVersionRes;
-import org.fa.jfs.xmpp.packets.JFSInfo;
 import org.fa.jfs.xmpp.NotificationType;
+import org.fa.jfs.xmpp.packets.JFSInfo;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,26 +44,20 @@ public class StateMachineTest {
     SmState state1 = new SmState(5000);
     SmState state2 = new SmState(5000);
 
-    SmAction a1 = new SmAction(SmAction.ActionType.INTER, new SmAction.Action() {
-        @Override
-        public SmNode execute(SmEvent event, SmContext context, SmAction smAction) {
-            RemoteVersionRes e = (RemoteVersionRes)event;
-            if (Integer.parseInt(e.getJfsInfo().getRepositoryVersion()) > currentRepVersion) {
-                // need to request remote repository here, then going to state for awaiting request result
-                // remote repository request call
-                return sm.next(smAction.getRoute(SmEvent._ok));
-            }
-            // repository is up to date, returning to state1
-            return sm.next(smAction.getRoute(SmEvent._1));
-        }
-    });
-
-    SmAction a2 = new SmAction(SmAction.ActionType.INTER, new SmAction.Action() {
-        @Override
-        public SmNode execute(SmEvent event, SmContext context, SmAction smAction) {
-            //ok remote repository has arrived, do compare, save to fs and exit SM
+    SmAction a1 = new SmAction(SmAction.ActionType.INTER, (event, context1, smAction) -> {
+        RemoteVersionRes e = (RemoteVersionRes) event;
+        if (Integer.parseInt(e.getJfsInfo().getRepositoryVersion()) > currentRepVersion) {
+            // need to request remote repository here, then going to state for awaiting request result
+            // remote repository request call
             return sm.next(smAction.getRoute(SmEvent._ok));
         }
+        // repository is up to date, returning to state1
+        return sm.next(smAction.getRoute(SmEvent._1));
+    });
+
+    SmAction a2 = new SmAction(SmAction.ActionType.INTER, (event, context1, smAction) -> {
+        //ok remote repository has arrived, do compare, save to fs and exit SM
+        return sm.next(smAction.getRoute(SmEvent._ok));
     });
 
     @Before
